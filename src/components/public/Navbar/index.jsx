@@ -1,6 +1,7 @@
 import logo from "@/../public/logo.jpeg";
 import { Icon } from "@/constant";
 import Image from "next/image";
+import Link from "next/link";
 
 function Navbar({ onAdmin }) {
   return (
@@ -23,9 +24,9 @@ function Navbar({ onAdmin }) {
         </div>
 
         {onAdmin && (
-          <button className="admin-link" onClick={onAdmin}>
+          <Link className="admin-link" href="/admin">
             Admin login <Icon name="arrow" size={15} />
-          </button>
+          </Link>
         )}
       </div>
     </nav>

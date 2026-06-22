@@ -147,3 +147,10 @@ export const teachers = [
     responses: 176,
   },
 ];
+
+export const courses = [
+  { name: "Bachelor of Computer Applications", code: "BCA", semesters: 6, students: 420 },
+  { name: "Master of Computer Applications", code: "MCA", semesters: 4, students: 188 },
+  { name: "Bachelor of Business Administration", code: "BBA", semesters: 6, students: 356 },
+  { name: "Master of Business Administration", code: "MBA", semesters: 4, students: 214 },
+];

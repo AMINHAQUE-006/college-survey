@@ -555,7 +555,9 @@ footer {
   gap: 3px;
 }
 .admin-shell nav button,
-.side-bottom > button {
+.admin-shell nav a,
+.side-bottom > button,
+.side-bottom > a {
   width: 100%;
   border: 0;
   background: none;
@@ -570,11 +572,14 @@ footer {
   font-weight: 700;
 }
 .admin-shell nav button:hover,
-.admin-shell nav button.active {
+.admin-shell nav button.active,
+.admin-shell nav a:hover,
+.admin-shell nav a.active {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
-.admin-shell nav button.active {
+.admin-shell nav button.active,
+.admin-shell nav a.active {
   box-shadow: inset 3px 0 var(--accent);
 }
 .admin-shell nav em {
@@ -634,6 +639,50 @@ footer {
   margin-left: 244px;
   min-width: 0;
   flex: 1;
+}
+.admin-navbar {
+  height: 66px;
+  padding: 0 38px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 8;
+}
+.admin-navbar > div:first-of-type small,
+.admin-navbar > div:first-of-type b,
+.navbar-user span > * {
+  display: block;
+}
+.admin-navbar > div:first-of-type small {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 1.2px;
+}
+.admin-navbar > div:first-of-type b {
+  font-size: 14px;
+  margin-top: 2px;
+}
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.navbar-user b {
+  font-size: 10px;
+}
+.navbar-user small {
+  color: var(--muted);
+  font-size: 8px;
+  margin-top: 2px;
+}
+.menu-trigger {
+  display: none;
+  border: 0;
+  background: none;
 }
 .admin-content {
   max-width: 1440px;
@@ -1311,6 +1360,20 @@ tbody tr:hover {
   .admin-main {
     margin-left: 0;
   }
+  .admin-navbar {
+    height: 62px;
+    padding: 0 17px;
+  }
+  .menu-trigger {
+    display: grid;
+    place-items: center;
+  }
+  .admin-navbar > div:first-of-type {
+    display: none;
+  }
+  .navbar-user span:last-child {
+    display: none;
+  }
   .mobile-top {
     height: 62px;
     background: #fff;
@@ -1399,6 +1462,44 @@ tbody tr:hover {
     display: none;
   }
   .survey-top span {
+    display: none;
+  }
+}
+
+.mobile-top {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .mobile-top button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .mobile-top .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .mobile-top {
     display: none;
   }
 }

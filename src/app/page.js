@@ -696,10 +696,5 @@ function PublicPortal({ onAdmin }) {
 }
 
 export default function Home() {
-  const [mode, setMode] = useState("public");
-  return mode === "public" ? (
-    <PublicPortal onAdmin={() => setMode("admin")} />
-  ) : (
-    <Admin onPublic={() => setMode("public")} />
-  );
+  return <PublicPortal onAdmin />;
 }
