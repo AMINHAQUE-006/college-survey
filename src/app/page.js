@@ -1,5 +1,7 @@
 "use client";
-import Navbar from "@/components/public/Navbar";
+import Dashboard from "@/components/admin/dashboard";
+import Navbar from "@/components/public/navbar";
+import { teachers } from "@/constant";
 import { useMemo, useState } from "react";
 
 const Icon = ({ name, size = 20 }) => {
@@ -136,49 +138,6 @@ const coursesSeed = [
   },
 ];
 
-const teachers = [
-  {
-    name: "Dr. Ananya Sharma",
-    initials: "AS",
-    subject: "Database Management",
-    department: "Computer Science",
-    rating: 4.8,
-    responses: 286,
-  },
-  {
-    name: "Prof. Rahul Mehta",
-    initials: "RM",
-    subject: "Web Technologies",
-    department: "Computer Science",
-    rating: 4.6,
-    responses: 264,
-  },
-  {
-    name: "Dr. Priya Nair",
-    initials: "PN",
-    subject: "Business Statistics",
-    department: "Management",
-    rating: 4.5,
-    responses: 219,
-  },
-  {
-    name: "Prof. Arjun Kapoor",
-    initials: "AK",
-    subject: "Data Structures",
-    department: "Computer Science",
-    rating: 4.3,
-    responses: 198,
-  },
-  {
-    name: "Dr. Meera Iyer",
-    initials: "MI",
-    subject: "Organizational Behavior",
-    department: "Management",
-    rating: 4.2,
-    responses: 176,
-  },
-];
-
 const nav = [
   ["Dashboard", "chart"],
   ["Courses", "book"],
@@ -190,21 +149,6 @@ const nav = [
   ["Analytics", "chart"],
   ["Settings", "settings"],
 ];
-
-const Stat = ({ icon, label, value, delta, tone }) => (
-  <article className="stat-card">
-    <div className={`stat-icon ${tone}`}>
-      <Icon name={icon} />
-    </div>
-    <div>
-      <p>{label}</p>
-      <h3>{value}</h3>
-      <small>
-        <b>↗ {delta}</b> vs last month
-      </small>
-    </div>
-  </article>
-);
 
 const Rating = ({ value, onChange, compact = false }) => (
   <div
@@ -225,205 +169,6 @@ const Rating = ({ value, onChange, compact = false }) => (
     ))}
   </div>
 );
-
-function Dashboard() {
-  return (
-    <>
-      <header className="content-head">
-        <div>
-          <p className="eyebrow">OVERVIEW</p>
-          <h1>
-            Good morning, Admin <span>👋</span>
-          </h1>
-          <p>Here’s what’s happening with feedback across your college.</p>
-        </div>
-        <button className="primary">
-          <Icon name="plus" size={18} /> New campaign
-        </button>
-      </header>
-      <section className="stats-grid">
-        <Stat
-          icon="feedback"
-          label="Total feedback"
-          value="2,847"
-          delta="12.4%"
-          tone="blue"
-        />
-        <Stat
-          icon="campaign"
-          label="Active campaigns"
-          value="3"
-          delta="1 new"
-          tone="pink"
-        />
-        <Stat
-          icon="users"
-          label="Total teachers"
-          value="48"
-          delta="4.2%"
-          tone="green"
-        />
-        <Stat
-          icon="book"
-          label="Total courses"
-          value="12"
-          delta="2 new"
-          tone="amber"
-        />
-      </section>
-      <section className="dashboard-grid">
-        <article className="panel chart-panel">
-          <div className="panel-head">
-            <div>
-              <h2>Feedback trend</h2>
-              <p>Submissions over the last 7 months</p>
-            </div>
-            <select>
-              <option>Last 7 months</option>
-            </select>
-          </div>
-          <TrendChart />
-        </article>
-        <article className="panel score-panel">
-          <div className="panel-head">
-            <div>
-              <h2>Overall scores</h2>
-              <p>Average across all feedback</p>
-            </div>
-          </div>
-          {[
-            ["Infrastructure", 4.2, "blue"],
-            ["Academic", 4.5, "pink"],
-            ["Teachers", 4.6, "green"],
-          ].map(([n, v, c]) => (
-            <div className="score-row" key={n}>
-              <div>
-                <span>{n}</span>
-                <b>
-                  {v}
-                  <small>/5</small>
-                </b>
-              </div>
-              <div className="bar">
-                <i className={c} style={{ width: `${v * 20}%` }} />
-              </div>
-            </div>
-          ))}
-          <div className="overall">
-            <div className="ring">
-              <b>4.5</b>
-              <span>out of 5</span>
-            </div>
-            <div>
-              <strong>Excellent</strong>
-              <p>Based on 2,847 responses</p>
-            </div>
-          </div>
-        </article>
-      </section>
-      <section className="dashboard-grid lower">
-        <article className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Top rated teachers</h2>
-              <p>Based on current campaign feedback</p>
-            </div>
-            <button className="text-btn">
-              View all <Icon name="arrow" size={15} />
-            </button>
-          </div>
-          <div className="teacher-list">
-            {teachers.slice(0, 4).map((t, i) => (
-              <div className="teacher-row" key={t.name}>
-                <span className="rank">{i + 1}</span>
-                <span className={`avatar a${i}`}>{t.initials}</span>
-                <div>
-                  <b>{t.name}</b>
-                  <small>{t.subject}</small>
-                </div>
-                <div className="teacher-score">
-                  <Icon name="star" size={16} />
-                  <b>{t.rating}</b>
-                  <small>{t.responses} reviews</small>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-        <article className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Recent activity</h2>
-              <p>Latest anonymous submissions</p>
-            </div>
-            <button className="text-btn">
-              View all <Icon name="arrow" size={15} />
-            </button>
-          </div>
-          <div className="activity-list">
-            {[
-              [
-                "BCA • Semester 4",
-                "Infrastructure & Teacher",
-                "2 min ago",
-                "blue",
-              ],
-              ["MBA • Semester 2", "Academic & Teacher", "18 min ago", "pink"],
-              ["MCA • Semester 3", "Infrastructure", "42 min ago", "green"],
-              ["BBA • Semester 6", "Complete feedback", "1 hr ago", "amber"],
-            ].map((x) => (
-              <div className="activity" key={x[2]}>
-                <i className={x[3]} />
-                <div>
-                  <b>{x[0]}</b>
-                  <small>{x[1]}</small>
-                </div>
-                <time>{x[2]}</time>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
-    </>
-  );
-}
-
-function TrendChart() {
-  const points = "15,145 85,126 155,134 225,91 295,102 365,62 435,34";
-  return (
-    <div className="trend">
-      <div className="ylabels">
-        <span>600</span>
-        <span>450</span>
-        <span>300</span>
-        <span>150</span>
-        <span>0</span>
-      </div>
-      <svg viewBox="0 0 450 170" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--primary)" stopOpacity=".2" />
-            <stop offset="1" stopColor="var(--primary)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[25, 60, 95, 130, 165].map((y) => (
-          <line key={y} x1="0" x2="450" y1={y} y2={y} className="gridline" />
-        ))}
-        <polygon points={`${points} 435,165 15,165`} fill="url(#fade)" />
-        <polyline points={points} className="trendline" />
-        {points.split(" ").map((p, i) => {
-          const [x, y] = p.split(",");
-          return <circle key={i} cx={x} cy={y} r="4" />;
-        })}
-      </svg>
-      <div className="xlabels">
-        {["Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((x) => (
-          <span key={x}>{x}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function Courses({ courses, setCourses }) {
   const [query, setQuery] = useState("");
