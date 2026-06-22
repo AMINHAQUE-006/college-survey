@@ -1,3 +1,15 @@
+# CampusVoice
+
+College teacher and infrastructure feedback system using Next.js App Router, MongoDB, Mongoose, Auth.js credentials, and Zod.
+
+## Backend setup
+
+1. Copy `.env.example` to `.env.local` and configure its values.
+2. Run `npm run seed` to create the initial administrator.
+3. Run `npm run dev`.
+
+Initial administrator: `amin@praxiaskill.com` / `Amin@2006`. Change the password after first login. OpenAPI JSON is available at `/api/docs`.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

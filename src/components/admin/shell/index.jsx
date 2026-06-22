@@ -2,6 +2,8 @@
 
 import { Icon } from "@/constant";
 import Link from "next/link";
+import Image from "next/image";
+import logo from "@/../public/logo.jpeg";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -25,12 +27,10 @@ export default function AdminShell({ children }) {
     <div className="admin-shell">
       <aside className={open ? "open" : ""}>
         <div className="brand">
-          <span>
-            <Icon name="cap" size={25} />
-          </span>
+          <Image src={logo} alt="The CAG College logo" width={42} height={42} className="brand-logo" priority />
 
           <div>
-            <b>CampusVoice</b>
+            <b>THE CAG COLLEGE</b>
             <small>ADMIN PORTAL</small>
           </div>
 
@@ -86,11 +86,9 @@ export default function AdminShell({ children }) {
           </button>
 
           <div className="brand">
-            <span>
-              <Icon name="cap" />
-            </span>
+            <Image src={logo} alt="The CAG College logo" width={34} height={34} className="brand-logo" />
 
-            <b>CampusVoice</b>
+            <b>THE CAG COLLEGE</b>
           </div>
 
           <span className="avatar">AD</span>
