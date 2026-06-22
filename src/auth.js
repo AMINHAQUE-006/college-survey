@@ -4,6 +4,7 @@ import AuthService from "@/services/AuthService";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  pages: { signIn: "/login" },
   session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
   providers: [
     Credentials({

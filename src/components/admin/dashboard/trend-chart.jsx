@@ -1,5 +1,7 @@
-function TrendChart() {
-  const points = "15,145 85,126 155,134 225,91 295,102 365,62 435,34";
+function TrendChart({ data = [] }) {
+  const values = data.slice(-7);
+  const max = Math.max(...values.map((x) => x.submissions), 1);
+  const points = values.map((x, i) => `${15 + i * (420 / Math.max(values.length - 1, 1))},${165 - (x.submissions / max) * 140}`).join(" ");
   return (
     <div className="trend">
       <div className="ylabels">
@@ -19,16 +21,15 @@ function TrendChart() {
         {[25, 60, 95, 130, 165].map((y) => (
           <line key={y} x1="0" x2="450" y1={y} y2={y} className="gridline" />
         ))}
-        <polygon points={`${points} 435,165 15,165`} fill="url(#fade)" />
-        <polyline points={points} className="trendline" />
+        {points && <><polygon points={`${points} 435,165 15,165`} fill="url(#fade)" /><polyline points={points} className="trendline" /></>}
         {points.split(" ").map((p, i) => {
           const [x, y] = p.split(",");
           return <circle key={i} cx={x} cy={y} r="4" />;
         })}
       </svg>
       <div className="xlabels">
-        {["Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((x) => (
-          <span key={x}>{x}</span>
+        {values.map((x) => (
+          <span key={x.date}>{new Date(x.date).toLocaleDateString(undefined,{month:"short",day:"numeric"})}</span>
         ))}
       </div>
     </div>

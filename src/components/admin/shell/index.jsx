@@ -5,14 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import logo from "@/../public/logo.jpeg";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { api, listResource } from "@/lib/client-api";
 
 const navigation = [
   { label: "Dashboard", icon: "chart", href: "/admin" },
   { label: "Courses", icon: "book", href: "/admin/courses" },
   { label: "Teachers", icon: "users", href: "/admin/teachers" },
   { label: "Subjects", icon: "building", href: "/admin/subjects" },
-  { label: "Campaigns", icon: "campaign", href: "/admin/campaigns", badge: 3 },
+  { label: "Campaigns", icon: "campaign", href: "/admin/campaigns" },
   { label: "Question Bank", icon: "question", href: "/admin/question-bank" },
   { label: "Feedback", icon: "feedback", href: "/admin/feedback" },
   { label: "Analytics", icon: "chart", href: "/admin/analytics" },
@@ -21,7 +23,17 @@ const navigation = [
 
 export default function AdminShell({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [activeCampaigns, setActiveCampaigns] = useState(0);
+  useEffect(() => {
+    listResource("campaigns", "isActive=true").then(({ items }) => setActiveCampaigns(items.length)).catch(() => {});
+  }, []);
+  const logout = async () => {
+    await api("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <div className="admin-shell">
@@ -50,7 +62,7 @@ export default function AdminShell({ children }) {
               <Icon name={item.icon} />
               <span>{item.label}</span>
 
-              {item.badge && <em>{item.badge}</em>}
+              {item.href === "/admin/campaigns" && activeCampaigns > 0 && <em>{activeCampaigns}</em>}
             </Link>
           ))}
         </nav>
@@ -65,11 +77,11 @@ export default function AdminShell({ children }) {
             <span className="avatar">AD</span>
 
             <div>
-              <b>Admin User</b>
-              <small>Super Admin</small>
+              <b>Administrator</b>
+              <small>Admin account</small>
             </div>
 
-            <button>
+            <button onClick={logout} aria-label="Log out">
               <Icon name="logout" size={18} />
             </button>
           </div>
