@@ -64,7 +64,7 @@ export const campaignUpdateSchema = z.object({
 });
 export const questionSchema = z.object({
   question: text(5, 500),
-  category: z.enum(["infrastructure", "academic", "teacher"]),
+  category: z.enum(["Teaching", "Content", "Environment", "Support", "Other"]),
   sortOrder: z.coerce.number().int().min(0).default(0),
   isActive: active,
 });

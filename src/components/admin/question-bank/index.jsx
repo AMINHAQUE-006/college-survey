@@ -5,7 +5,6 @@ import { api, listResource } from "@/lib/client-api";
 import { useCallback, useEffect, useState } from "react";
 
 const CATEGORIES = ["Teaching", "Content", "Environment", "Support", "Other"];
-
 const emptyForm = {
   question: "",
   category: "",
@@ -246,9 +245,13 @@ export default function Questions() {
               Category
               <select
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                onChange={(e) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    category: e.target.value,
+                  }));
+                }}
               >
-                <option value="">Uncategorised</option>
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     {c}
