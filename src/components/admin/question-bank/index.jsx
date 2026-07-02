@@ -4,10 +4,19 @@ import { Icon } from "@/constant";
 import { api, listResource } from "@/lib/client-api";
 import { useCallback, useEffect, useState } from "react";
 
-const CATEGORIES = ["Teaching", "Content", "Environment", "Support", "Other"];
+const CATEGORIES = [
+  "Teaching",
+  "Content",
+  "Environment",
+  "Support",
+  "Other",
+  "Teacher",
+];
 const emptyForm = {
   question: "",
-  category: "",
+  category: "Teaching",
+  teacherName: "",
+  teacherQuestions: [""],
   isActive: true,
 };
 
@@ -23,7 +32,7 @@ export default function Questions() {
   const load = useCallback(async () => {
     try {
       const data = await listResource("questions");
-      setQuestions(data.items);
+      setQuestions(data.items || []);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -36,15 +45,30 @@ export default function Questions() {
 
   const openCreate = () => {
     setEditTarget(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, category: "Teaching", teacherQuestions: [""] });
     setOpen(true);
   };
 
   const openEdit = (q) => {
     setEditTarget(q);
+    const relatedTeacherQuestions = questions
+      .filter(
+        (item) =>
+          item.category === "Teacher" &&
+          item.teacherName?.toLowerCase() ===
+            (q.teacherName || "").toLowerCase(),
+      )
+      .map((item) => item.question)
+      .filter(Boolean);
+
     setForm({
       question: q.question,
-      category: q.category || "",
+      category: q.category || "Teaching",
+      teacherName: q.teacherName || "",
+      teacherQuestions:
+        q.category === "Teacher" && relatedTeacherQuestions.length
+          ? relatedTeacherQuestions
+          : [q.question || ""],
       isActive: q.isActive,
     });
     setOpen(true);
@@ -53,24 +77,95 @@ export default function Questions() {
   const closeModal = () => {
     setOpen(false);
     setEditTarget(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, category: "Teaching", teacherQuestions: [""] });
+  };
+
+  const updateTeacherQuestion = (index, value) => {
+    setForm((prev) => ({
+      ...prev,
+      teacherQuestions: prev.teacherQuestions.map((item, i) =>
+        i === index ? value : item,
+      ),
+    }));
+  };
+
+  const addTeacherQuestion = () => {
+    setForm((prev) => ({
+      ...prev,
+      teacherQuestions: [...prev.teacherQuestions, ""],
+    }));
+  };
+
+  const removeTeacherQuestion = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      teacherQuestions: prev.teacherQuestions.filter((_, i) => i !== index),
+    }));
   };
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (editTarget) {
-        await api(`/api/questions/${editTarget._id}`, {
-          method: "PATCH",
-          body: JSON.stringify(form),
-        });
+      if (form.category === "Teacher") {
+        const teacherName = form.teacherName.trim();
+        const teacherQuestions = form.teacherQuestions
+          .map((item) => item.trim())
+          .filter(Boolean);
+
+        if (!teacherName) throw new Error("Teacher name is required.");
+        if (!teacherQuestions.length) {
+          throw new Error("Add at least one question for this teacher.");
+        }
+
+        if (editTarget) {
+          const existing = questions.filter(
+            (item) =>
+              item.category === "Teacher" &&
+              item.teacherName?.toLowerCase() === teacherName.toLowerCase(),
+          );
+          await Promise.all(
+            existing.map((item) =>
+              api(`/api/questions/${item._id}`, { method: "DELETE" }),
+            ),
+          );
+        }
+
+        await Promise.all(
+          teacherQuestions.map((question) =>
+            api("/api/questions", {
+              method: "POST",
+              body: JSON.stringify({
+                question,
+                category: "Teacher",
+                teacherName,
+                isActive: form.isActive,
+              }),
+            }),
+          ),
+        );
       } else {
-        await api("/api/questions", {
-          method: "POST",
-          body: JSON.stringify(form),
-        });
+        const payload = {
+          question: form.question.trim(),
+          category: form.category,
+          isActive: form.isActive,
+        };
+
+        if (!payload.question) throw new Error("Question text is required.");
+
+        if (editTarget) {
+          await api(`/api/questions/${editTarget._id}`, {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+        } else {
+          await api("/api/questions", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+        }
       }
+
       closeModal();
       await load();
     } catch (err) {
@@ -109,8 +204,16 @@ export default function Questions() {
         ? questions.filter((q) => q.isActive)
         : questions.filter((q) => !q.isActive);
 
-  // Group visible by category
   const byCategory = visible.reduce((acc, q) => {
+    if (q.category === "Teacher") {
+      const teacherKey = q.teacherName
+        ? `Teacher • ${q.teacherName}`
+        : "Teacher";
+      if (!acc[teacherKey]) acc[teacherKey] = [];
+      acc[teacherKey].push(q);
+      return acc;
+    }
+
     const cat = q.category || "Uncategorised";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(q);
@@ -153,32 +256,19 @@ export default function Questions() {
           <p>No questions match this filter.</p>
         </div>
       ) : (
-        Object.entries(byCategory).map(([cat, qs]) => (
-          <section key={cat} className="q-group">
-            <h2 className="q-group-title">{cat}</h2>
-            <div className="panel q-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Question</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {qs.map((q, i) => (
-                    <tr key={q._id}>
-                      <td className="q-num">{i + 1}</td>
-                      <td className="q-text">{q.question}</td>
-                      <td>
-                        <span
-                          className={`status ${q.isActive ? "active" : ""}`}
-                        >
-                          {q.isActive ? "Active" : "Inactive"}
+        Object.entries(byCategory).map(([cat, qs]) => {
+          const isTeacherGroup = qs[0]?.category === "Teacher";
+          return (
+            <section key={cat} className="q-group">
+              <h2 className="q-group-title">{cat}</h2>
+              {isTeacherGroup ? (
+                <div className="panel teacher-card">
+                  <ul className="teacher-question-list">
+                    {qs.map((q) => (
+                      <li key={q._id} className="teacher-question-item">
+                        <span className="teacher-question-text">
+                          {q.question}
                         </span>
-                      </td>
-                      <td>
                         <div className="row-actions">
                           <button
                             className="text-btn"
@@ -199,14 +289,64 @@ export default function Questions() {
                             Delete
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        ))
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="panel q-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Question</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {qs.map((q, i) => (
+                        <tr key={q._id}>
+                          <td className="q-num">{i + 1}</td>
+                          <td className="q-text">{q.question}</td>
+                          <td>
+                            <span
+                              className={`status ${q.isActive ? "active" : ""}`}
+                            >
+                              {q.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="row-actions">
+                              <button
+                                className="text-btn"
+                                onClick={() => openEdit(q)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="text-btn muted"
+                                onClick={() => toggle(q)}
+                              >
+                                {q.isActive ? "Deactivate" : "Activate"}
+                              </button>
+                              <button
+                                className="text-btn danger"
+                                onClick={() => remove(q._id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          );
+        })
       )}
 
       {open && (
@@ -230,16 +370,70 @@ export default function Questions() {
               </button>
             </div>
 
-            <label>
-              Question
-              <textarea
-                required
-                rows={3}
-                value={form.question}
-                onChange={(e) => setForm({ ...form, question: e.target.value })}
-                placeholder="e.g. How clearly did the teacher explain concepts?"
-              />
-            </label>
+            {form.category === "Teacher" ? (
+              <>
+                <label>
+                  Teacher name
+                  <input
+                    required
+                    value={form.teacherName}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        teacherName: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Dr. Asha Kumar"
+                  />
+                </label>
+
+                <div className="teacher-question-editor">
+                  {form.teacherQuestions.map((item, index) => (
+                    <div key={index} className="teacher-question-row">
+                      <textarea
+                        required={index === 0}
+                        rows={2}
+                        value={item}
+                        onChange={(e) =>
+                          updateTeacherQuestion(index, e.target.value)
+                        }
+                        placeholder={`Teacher question ${index + 1}`}
+                      />
+                      {form.teacherQuestions.length > 1 && (
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          onClick={() => removeTeacherQuestion(index)}
+                        >
+                          <Icon name="close" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="secondary add-row-btn"
+                  onClick={addTeacherQuestion}
+                >
+                  <Icon name="plus" size={16} /> Add another question
+                </button>
+              </>
+            ) : (
+              <label>
+                Question
+                <textarea
+                  required
+                  rows={3}
+                  value={form.question}
+                  onChange={(e) =>
+                    setForm({ ...form, question: e.target.value })
+                  }
+                  placeholder="e.g. How clearly did the teacher explain concepts?"
+                />
+              </label>
+            )}
 
             <label>
               Category
@@ -249,6 +443,15 @@ export default function Questions() {
                   setForm((prev) => ({
                     ...prev,
                     category: e.target.value,
+                    teacherQuestions:
+                      e.target.value === "Teacher"
+                        ? prev.teacherQuestions.length
+                          ? prev.teacherQuestions
+                          : [""]
+                        : [""],
+                    teacherName:
+                      e.target.value === "Teacher" ? prev.teacherName : "",
+                    question: e.target.value === "Teacher" ? "" : prev.question,
                   }));
                 }}
               >
@@ -372,28 +575,59 @@ export default function Questions() {
         .text-btn.danger {
           color: var(--error, #ef4444);
         }
+        .teacher-card {
+          padding: 1rem;
+        }
+        .teacher-question-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        .teacher-question-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.75rem 0.9rem;
+          border: 1px solid var(--border);
+          border-radius: var(--radius, 8px);
+          background: var(--surface);
+        }
+        .teacher-question-text {
+          line-height: 1.5;
+        }
+        .teacher-question-editor {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-top: 0.5rem;
+        }
+        .teacher-question-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .add-row-btn {
+          margin-top: 0.5rem;
+          width: fit-content;
+        }
+        .icon-btn {
+          border: 0;
+          background: transparent;
+          cursor: pointer;
+          color: var(--text-muted);
+          padding: 0.35rem;
+        }
         .empty-state {
           text-align: center;
           padding: 3rem;
           color: var(--text-muted);
         }
-        textarea {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid var(--border);
-          border-radius: var(--radius, 8px);
-          background: var(--surface);
-          color: var(--text);
-          font-size: 0.9rem;
-          font-family: inherit;
-          resize: vertical;
-          margin-top: 0.35rem;
-        }
-        textarea:focus {
-          outline: none;
-          border-color: var(--accent, #6366f1);
-          box-shadow: 0 0 0 3px var(--accent-light, rgba(99, 102, 241, 0.15));
-        }
+        input,
+        textarea,
         select {
           width: 100%;
           padding: 0.5rem 0.75rem;
@@ -402,8 +636,14 @@ export default function Questions() {
           background: var(--surface);
           color: var(--text);
           font-size: 0.9rem;
+          font-family: inherit;
           margin-top: 0.35rem;
         }
+        textarea {
+          resize: vertical;
+        }
+        input:focus,
+        textarea:focus,
         select:focus {
           outline: none;
           border-color: var(--accent, #6366f1);

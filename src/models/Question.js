@@ -9,9 +9,21 @@ const schema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Teaching", "Content", "Environment", "Support", "Other"],
+      enum: [
+        "Teaching",
+        "Content",
+        "Environment",
+        "Support",
+        "Other",
+        "Teacher",
+      ],
       required: true,
       index: true,
+    },
+    teacherName: {
+      type: String,
+      trim: true,
+      default: "",
     },
     sortOrder: {
       type: Number,
